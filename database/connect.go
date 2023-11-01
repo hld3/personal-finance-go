@@ -7,16 +7,16 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var conn *sql.DB
+var Conn *sql.DB
 
 func ConnectDB() {
 	var err error
-	conn, err = sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3306)/finance")
+	Conn, err = sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3306)/finance")
 	if err != nil {
 		log.Fatal("Error connecting to the database", err)
 	}
 
-	err = conn.Ping()
+	err = Conn.Ping()
 	if err != nil {
 		log.Fatal("Database connection not found", err)
 	}
@@ -25,5 +25,6 @@ func ConnectDB() {
 }
 
 func CloseDB() {
-	conn.Close()
+	Conn.Close()
 }
+
