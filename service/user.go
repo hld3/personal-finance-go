@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/database"
 	"github.com/hld3/personal-finance-go/domain"
 )
@@ -13,8 +14,10 @@ func RegisterNewUser(user *domain.UserModel) error {
 	if err != nil {
 		return err // ValidateUser will log the error
 	}
+	// add new user id
+	user.UserId = uuid.New()
 	// add creation date
-	user.CreateDate = time.Now()
+	user.CreationDate = time.Now().UnixMilli()
 
 	// TODO hash password
 

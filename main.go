@@ -36,7 +36,6 @@ func registerNewUser(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error converting to user:", err)
 		return
 	}
-	log.Println(user)
 
 	err = service.RegisterNewUser(&user)
 	if err != nil {
