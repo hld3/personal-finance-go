@@ -17,10 +17,10 @@ func TestAddNewUser(t *testing.T) {
 	Conn = db
 
 	// user := domain.UserModel{UserId: uuid.New(), FirstName: "Harry", LastName: "Dodson", Email: "email@email.com", Phone: "123-123-1234", DateOfBirth: time.Now(), CreationDate: time.Now(), PasswordHash: "password"}
-	user := domain.BuildUser() //TODO fix this
+	user := domain.UserModelBuilder().Build() //TODO fix this
 	mock.ExpectExec("insert into user").WithArgs(user.UserId, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.CreationDate, user.PasswordHash).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err = AddNewUser(user)
+	err = AddNewUser(&user)
 	if err != nil {
 		t.Error("Error saving user", err)
 	}
