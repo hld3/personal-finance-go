@@ -21,8 +21,9 @@ func TestAddNewUserIntegration(t *testing.T) {
 
 	// Attempt to save the expectedUser.
 	dob := time.Date(1980, time.December, 19, 0, 0, 0, 0, time.UTC).UnixMilli()
-	// createStart := time.Now().UnixMilli()
-	expectedUser := domain.UserModel{UserId: uuid.New(), FirstName: "Integration", LastName: "Test", Email: "another@email.com", Phone: "123-123-1234", DateOfBirth: dob, CreationDate: time.Now().UnixMilli(), PasswordHash: "password"}
+	createStart := time.Now().UnixMilli()
+	expectedUser := domain.UserModelBuilder().Build()
+	expectedUser.DateOfBirth = dob
 	createEnd := time.Now().UnixMilli()
 
 	err = AddNewUser(&expectedUser)
@@ -36,18 +37,24 @@ func TestAddNewUserIntegration(t *testing.T) {
 	var savedUser domain.UserModel
 
 	stmt := `select user_id, first_name, last_name, email, phone, password_hash, creation_date, date_of_birth from user_model where user_id = ?`
-	err = Conn.QueryRow(stmt, expectedUser.UserId).Scan(&savedUser.UserId, &savedUser.FirstName, &savedUser.LastName, &savedUser.Email, &savedUser.Phone, &savedUser.PasswordHash, &savedUser.CreationDate, &savedUser.DateOfBirth)
+	err = Conn.QueryRow(stmt, expectedUser.UserId).Scan( &savedUser.UserId, &savedUser.FirstName, &savedUser.LastName, &savedUser.Email, 
+		&savedUser.Phone, &savedUser.PasswordHash, &savedUser.CreationDate, &savedUser.DateOfBirth)
 	if err != nil {
 		t.Fatal("Failed to retrieve user:", err)
 	}
 
-	if !compareUserData(expectedUser, savedUser, dob, time.Now().UnixMilli(), createEnd) {
+	if !compareUserData(expectedUser, savedUser, dob, createStart, createEnd) {
 		t.Fatalf("Saved user data: %v does not match expected user data: %v", savedUser, expectedUser)
 	}
 }
 
 func compareUserData(a, b domain.UserModel, dob, createStart, createEnd int64) bool {
-	return a.FirstName == b.FirstName && a.LastName == b.LastName && a.Email == b.Email && a.PasswordHash == b.PasswordHash && b.DateOfBirth == dob && (b.CreationDate >= createStart && b.CreationDate <= createEnd)
+	return a.FirstName == b.FirstName &&
+		a.LastName == b.LastName &&
+		a.Email == b.Email &&
+		a.PasswordHash == b.PasswordHash &&
+		b.DateOfBirth == dob &&
+		(b.CreationDate >= createStart && b.CreationDate <= createEnd)
 }
 
 func cleanUpDatabase(userId uuid.UUID) {
