@@ -15,6 +15,7 @@ func (user *UserDTO) ValidateUserDTO() error {
 	err := Validate.Struct(user)
 	if err != nil {
 		log.Printf("User validation failed, %v. UserDTO: %v\n", err, user)
+		return err
 	}
 	return nil
 }

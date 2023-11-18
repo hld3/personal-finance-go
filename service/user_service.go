@@ -8,17 +8,17 @@ import (
 	"github.com/hld3/personal-finance-go/domain"
 )
 
-func RegisterNewUser(user *domain.UserDTO) error {
+func RegisterNewUser(db database.UserDatabase, userDTO *domain.UserDTO) error {
 	// validate the user fields.
-	err := user.ValidateUserDTO()
+	err := userDTO.ValidateUserDTO()
 	if err != nil {
 		return err // ValidateUser will log the error
 	}
 
-	userModel := convertDTOToModel(user)
+	userModel := convertDTOToModel(userDTO)
 
 	// save the user to the database
-	err = database.AddNewUser(&userModel)
+	err = db.AddNewUser(&userModel)
 	if err != nil {
 		return err
 	}
@@ -27,12 +27,12 @@ func RegisterNewUser(user *domain.UserDTO) error {
 
 func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 	return domain.UserModel{
-		UserId: uuid.New(),
-		FirstName: from.FirstName,
-		LastName: from.LastName,
-		Phone: from.Phone,
-		Email: from.Email,
-		DateOfBirth: from.DateOfBirth,
+		UserId:       uuid.New(),
+		FirstName:    from.FirstName,
+		LastName:     from.LastName,
+		Phone:        from.Phone,
+		Email:        from.Email,
+		DateOfBirth:  from.DateOfBirth,
 		PasswordHash: from.Password, //TODO need to hash
 		CreationDate: time.Now().UnixMilli(),
 	}
