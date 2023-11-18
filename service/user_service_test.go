@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,7 +18,7 @@ func (m *StubDatabase) AddNewUser(user *domain.UserModel) error {
 	return nil
 }
 
-func TestRegisterNewUser(t *testing.T) {
+func TestRegisterNewUser_Validation(t *testing.T) {
 	stubDB := new(StubDatabase)
 	domain.Validate = validator.New()
 
@@ -57,5 +58,23 @@ func TestRegisterNewUser(t *testing.T) {
 				t.Errorf("RegisterNewUser: %s, unexpected error %s", tt.name, err)
 			}
 		})
+	}
+}
+
+func TestRegisterNewUser_Conversion(t *testing.T) {
+	domain.Validate = validator.New()
+
+	fromDTO := domain.UserDTOBuilder().Build()
+	toModel := convertDTOToModel(&fromDTO)
+
+	if toModel.FirstName != fromDTO.FirstName ||
+	toModel.LastName != fromDTO.LastName ||
+	toModel.Phone != fromDTO.Phone ||
+	toModel.Email != fromDTO.Email ||
+	toModel.DateOfBirth != fromDTO.DateOfBirth ||
+	toModel.PasswordHash != fromDTO.Password ||
+	toModel.UserId == uuid.Nil ||
+	toModel.CreationDate == 0 { //TODO will update after implementing hashing.
+		t.Error("Conversion of userDTO to userModel failed")
 	}
 }
