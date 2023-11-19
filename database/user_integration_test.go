@@ -17,7 +17,7 @@ func TestAddNewUserIntegration(t *testing.T) {
 		t.Fatal("Error connecting to the database:", err)
 	}
 	defer db.Close()
-	udb := DB{db}
+	udb := SQLManager{DB: db}
 
 	// Attempt to save the expectedUser.
 	dob := time.Date(1980, time.December, 19, 0, 0, 0, 0, time.UTC).UnixMilli()
@@ -37,7 +37,7 @@ func TestAddNewUserIntegration(t *testing.T) {
 	var savedUser domain.UserModel
 
 	stmt := `select user_id, first_name, last_name, email, phone, password_hash, creation_date, date_of_birth from user_model where user_id = ?`
-	err = udb.QueryRow(stmt, expectedUser.UserId).Scan( &savedUser.UserId, &savedUser.FirstName, &savedUser.LastName, &savedUser.Email, 
+	err = udb.DB.QueryRow(stmt, expectedUser.UserId).Scan( &savedUser.UserId, &savedUser.FirstName, &savedUser.LastName, &savedUser.Email, 
 		&savedUser.Phone, &savedUser.PasswordHash, &savedUser.CreationDate, &savedUser.DateOfBirth)
 	if err != nil {
 		t.Fatal("Failed to retrieve user:", err)
@@ -57,9 +57,9 @@ func compareUserData(a, b domain.UserModel, dob, createStart, createEnd int64) b
 		(b.CreationDate >= createStart && b.CreationDate <= createEnd)
 }
 
-func cleanUpDatabase(db *DB, userId uuid.UUID) {
+func cleanUpDatabase(db *SQLManager, userId uuid.UUID) {
 	stmt := `delete from user_model where user_id = ?`
-	_, err := db.Exec(stmt, userId)
+	_, err := db.DB.Exec(stmt, userId)
 	if err != nil {
 		log.Println("Error removing user:", userId)
 	}

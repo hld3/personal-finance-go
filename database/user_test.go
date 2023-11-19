@@ -13,7 +13,7 @@ func TestAddNewUser(t *testing.T) {
 		t.Fatal("Error creating SQL stub", err)
 	}
 	defer db.Close()
-	udb := DB{db}
+	udb := SQLManager{DB: db}
 
 	user := domain.UserModelBuilder().Build() 
 	mock.ExpectExec("insert into user").WithArgs(user.UserId, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.CreationDate, user.PasswordHash).WillReturnResult(sqlmock.NewResult(1, 1))
