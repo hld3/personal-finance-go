@@ -12,7 +12,7 @@ import (
 
 func TestAddNewUserIntegration(t *testing.T) {
 	// Open a connection to the database.
-	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3306)/finance")
+	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
 	if err != nil {
 		t.Fatal("Error connecting to the database:", err)
 	}

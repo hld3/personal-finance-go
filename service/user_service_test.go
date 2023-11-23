@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type StubDatabase struct {
@@ -66,15 +67,18 @@ func TestRegisterNewUser_Conversion(t *testing.T) {
 
 	fromDTO := domain.UserDTOBuilder().Build()
 	toModel := convertDTOToModel(&fromDTO)
+	err := bcrypt.CompareHashAndPassword([]byte(toModel.PasswordHash), []byte(fromDTO.Password))
+	if err != nil {
+		t.Error("Password hash does not match")
+	}
 
 	if toModel.FirstName != fromDTO.FirstName ||
 	toModel.LastName != fromDTO.LastName ||
 	toModel.Phone != fromDTO.Phone ||
 	toModel.Email != fromDTO.Email ||
 	toModel.DateOfBirth != fromDTO.DateOfBirth ||
-	toModel.PasswordHash != fromDTO.Password ||
 	toModel.UserId == uuid.Nil ||
-	toModel.CreationDate == 0 { //TODO will update after implementing hashing.
+	toModel.CreationDate == 0 { 
 		t.Error("Conversion of userDTO to userModel failed")
 	}
 }
