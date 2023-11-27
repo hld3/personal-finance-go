@@ -1,6 +1,10 @@
 package domain
 
-import "log"
+import (
+	"log"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type UserDTO struct {
 	FirstName   string `json:"firstName" validate:"required"`
@@ -11,10 +15,15 @@ type UserDTO struct {
 	Password    string `json:"password" validate:"required"`
 }
 
-func (user *UserDTO) ValidateUserDTO() error {
-	err := Validate.Struct(user)
+type UserData struct {
+	Validator *validator.Validate
+	User      *UserDTO
+}
+
+func (u *UserData) ValidateUserDTO() error {
+	err := u.Validator.Struct(u.User)
 	if err != nil {
-		log.Printf("User validation failed, %v. UserDTO: %v\n", err, user)
+		log.Printf("User validation failed, %v. UserDTO: %v\n", err, u.User)
 		return err
 	}
 	return nil

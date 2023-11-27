@@ -20,9 +20,17 @@ func (db *StubSQLManager) AddNewUser(user *domain.UserModel) error {
 	return nil
 }
 
+type MockUserService struct {
+	mock.Mock
+}
+
+func (m *MockUserService) RegisterNewUser(userData *domain.UserData) error {
+	args := m.Called(userData)
+	return args.Error(0)
+}
+
 func TestUserController_Register(t *testing.T) {
-	mockDB := new(StubSQLManager)
-	domain.Validate = validator.New()
+	mockService := new(MockUserService)
 
 	userDTO := domain.UserDTOBuilder().Build()
 	userJSON, err := json.Marshal(userDTO)
@@ -35,8 +43,10 @@ func TestUserController_Register(t *testing.T) {
 		t.Fatal("Error building the request.", err)
 	}
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(RegisterNewUser(mockDB))
 
+	mockService.On("RegisterNewUser", mock.AnythingOfType("*domain.UserData")).Return(nil)
+
+	handler := http.HandlerFunc(RegisterNewUserControl(mockService, validator.New()))
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

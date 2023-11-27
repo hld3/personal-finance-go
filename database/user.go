@@ -7,7 +7,7 @@ import (
 	"github.com/hld3/personal-finance-go/domain"
 )
 
-type UserDatabase interface {
+type UserDatabaseInterface interface {
 	AddNewUser(user *domain.UserModel) error
 }
 

@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hld3/personal-finance-go/database"
+	"github.com/go-playground/validator/v10"
 	"github.com/hld3/personal-finance-go/domain"
 	"github.com/hld3/personal-finance-go/service"
 )
 
-func RegisterNewUser(db database.UserDatabase) http.HandlerFunc {
+func RegisterNewUserControl(us service.UserServiceInterface, validator *validator.Validate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -26,7 +26,8 @@ func RegisterNewUser(db database.UserDatabase) http.HandlerFunc {
 			return
 		}
 
-		err = service.RegisterNewUser(db, &user)
+		userData := domain.UserData{User: &user, Validator: validator}
+		err = us.RegisterNewUser(&userData)
 		if err != nil {
 			log.Println("Error registering a new user:", err)
 			return

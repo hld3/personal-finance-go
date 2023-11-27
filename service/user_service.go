@@ -10,17 +10,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterNewUser(db database.UserDatabase, userDTO *domain.UserDTO) error {
+type UserServiceInterface interface {
+	RegisterNewUser(userData *domain.UserData) error
+}
+
+type UserService struct {
+	UDBI        database.UserDatabaseInterface // interface
+}
+
+func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
 	// validate the user fields.
-	err := userDTO.ValidateUserDTO()
+	err := userData.ValidateUserDTO()
 	if err != nil {
 		return err // ValidateUser will log the error
 	}
 
-	userModel := convertDTOToModel(userDTO)
+	userModel := convertDTOToModel(userData.User)
 
 	// save the user to the database
-	err = db.AddNewUser(&userModel)
+	err = us.UDBI.AddNewUser(&userModel)
 	if err != nil {
 		return err
 	}

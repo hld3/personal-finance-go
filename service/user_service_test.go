@@ -21,7 +21,7 @@ func (m *StubDatabase) AddNewUser(user *domain.UserModel) error {
 
 func TestRegisterNewUser_Validation(t *testing.T) {
 	stubDB := new(StubDatabase)
-	domain.Validate = validator.New()
+	userService := UserService{UDBI: stubDB}
 
 	tests := []struct {
 		name        string
@@ -45,7 +45,8 @@ func TestRegisterNewUser_Validation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := RegisterNewUser(stubDB, &tt.user)
+			userData := domain.UserData{User: &tt.user, Validator: validator.New()}
+			err := userService.RegisterNewUser(&userData)
 
 			if tt.wantErr {
 				if err == nil {

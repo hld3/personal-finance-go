@@ -16,7 +16,7 @@ func TestRegisterNewUser_Integration(t *testing.T) {
 	db := setUpDatabase()
 	defer db.Close()
 	udb := database.SQLManager{DB: db}
-	domain.Validate = validator.New()
+	userService := UserService{UDBI: &udb}
 
 	tests := []struct {
 		name    string
@@ -32,7 +32,8 @@ func TestRegisterNewUser_Integration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := RegisterNewUser(&udb, &tt.userDTO)
+			userData := domain.UserData{User: &tt.userDTO, Validator: validator.New()}
+			err := userService.RegisterNewUser(&userData)
 			if (err != nil) && !tt.wantErr {
 				t.Errorf("RegisterNewUser: %s, unexpected error: %v", tt.name, err)
 			}
