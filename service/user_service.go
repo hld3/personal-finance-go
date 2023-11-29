@@ -15,7 +15,7 @@ type UserServiceInterface interface {
 }
 
 type UserService struct {
-	UDBI        database.UserDatabaseInterface // interface
+	UDBI        database.UserDatabaseInterface
 }
 
 func (us *UserService) RegisterNewUser(userData *domain.UserData) error {

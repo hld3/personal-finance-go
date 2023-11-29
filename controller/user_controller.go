@@ -16,6 +16,7 @@ func RegisterNewUserControl(us service.UserServiceInterface, validator *validato
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Println("Error reading request body:", err)
+			http.Error(w, "Error reading request body", http.StatusBadRequest)
 			return
 		}
 
@@ -23,6 +24,7 @@ func RegisterNewUserControl(us service.UserServiceInterface, validator *validato
 		err = json.Unmarshal(bodyBytes, &user)
 		if err != nil {
 			log.Println("Error converting to user DTO:", err)
+			http.Error(w, "Error converting to user DTO", http.StatusBadRequest)
 			return
 		}
 
@@ -30,6 +32,7 @@ func RegisterNewUserControl(us service.UserServiceInterface, validator *validato
 		err = us.RegisterNewUser(&userData)
 		if err != nil {
 			log.Println("Error registering a new user:", err)
+			http.Error(w, "Error registering a new user", http.StatusInternalServerError)
 			return
 		}
 	}
