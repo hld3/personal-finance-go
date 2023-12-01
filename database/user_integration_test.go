@@ -48,6 +48,32 @@ func TestAddNewUserIntegration(t *testing.T) {
 	}
 }
 
+func TestRetrieveUserByEmailIntegration(t *testing.T) {
+	// Open a connection to the database.
+	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
+	if err != nil {
+		t.Fatal("Error connecting to the database:", err)
+	}
+	defer db.Close()
+	udb := SQLManager{DB: db}
+	
+	// Save a user to find
+	user := domain.UserModelBuilder().Build()
+	_, err = db.Exec("insert into user_model (user_id, first_name, last_name, email, phone, date_of_birth, creation_date, password_hash) values (?, ?, ?, ?, ?, ?, ?, ?)", user.UserId, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.CreationDate, user.PasswordHash)
+	if err != nil {
+		t.Error("Error saving test user:", err)
+	}
+
+	um, err := udb.RetrieveUserByEmail(user.Email)
+	if err != nil {
+		t.Error("Error retrieving user:", err)
+	}
+
+	if (um != user) {
+		t.Errorf("User data does not match, got %v, want %v", um, user)
+	}
+}
+
 func compareUserData(a, b domain.UserModel, dob, createStart, createEnd int64) bool {
 	return a.FirstName == b.FirstName &&
 		a.LastName == b.LastName &&
