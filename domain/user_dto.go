@@ -15,15 +15,30 @@ type UserDTO struct {
 	Password    string `json:"password" validate:"required"`
 }
 
+type UserLoginDTO struct {
+	Email    string `json:"email" validate:"email,required"`
+	Password string `json:"password" validate:"required"`
+}
+
 type UserData struct {
 	Validator *validator.Validate
 	User      *UserDTO
+	Login     *UserLoginDTO
 }
 
 func (u *UserData) ValidateUserDTO() error {
 	err := u.Validator.Struct(u.User)
 	if err != nil {
 		log.Printf("User validation failed, %v. UserDTO: %v\n", err, u.User)
+		return err
+	}
+	return nil
+}
+
+func (u *UserData) ValidateUserLoginDTO() error {
+	err := u.Validator.Struct(u.Login)
+	if err != nil {
+		log.Printf("Login validation failed, %v. LoginDTO: %v\n", err, u.Login)
 		return err
 	}
 	return nil

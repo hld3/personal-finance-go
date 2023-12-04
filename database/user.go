@@ -9,6 +9,7 @@ import (
 
 type UserDatabaseInterface interface {
 	AddNewUser(user *domain.UserModel) error
+	RetrieveUserByEmail(email string) (domain.UserModel, error)
 }
 
 type SQLManager struct {
