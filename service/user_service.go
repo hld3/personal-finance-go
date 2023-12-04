@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/database"
 	"github.com/hld3/personal-finance-go/domain"
+	"github.com/hld3/personal-finance-go/utility"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,7 +16,7 @@ type UserServiceInterface interface {
 }
 
 type UserService struct {
-	UDBI        database.UserDatabaseInterface
+	UDBI database.UserDatabaseInterface
 }
 
 func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
@@ -35,9 +36,33 @@ func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
 	return nil
 }
 
+func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (string, error) {
+	err := userData.ValidateUserLoginDTO()
+	if err != nil {
+		return "", err
+	}
+	// retrieve the user by email
+	userModel, err := us.UDBI.RetrieveUserByEmail(userData.Login.Email)
+	if err != nil {
+		return "", err
+	}
+	// compare password hashes. CompareHashAndPassword returns nil if they match.
+	err = bcrypt.CompareHashAndPassword([]byte(userModel.PasswordHash), []byte(userData.Login.Password))
+	if err != nil {
+		return "", err
+	}
+	// create JWT token.
+	token, err := utility.CreateJWTToken(userModel.UserId.String(), time.Hour) // hour for now.
+	if err != nil {
+		return "", err
+	}
+	// return result
+	return token, nil
+}
+
 func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 	userId := uuid.New()
-	hashedPass := hashPassword(from.Password, userId)
+	hashedPass := HashPassword(from.Password, userId)
 	return domain.UserModel{
 		UserId:       userId,
 		FirstName:    from.FirstName,
@@ -50,7 +75,8 @@ func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 	}
 }
 
-func hashPassword(password string, userId uuid.UUID) string {
+// TODO move this to utility some day.
+func HashPassword(password string, userId uuid.UUID) string {
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Error hashing password: %s, for user: %v", password, userId)
