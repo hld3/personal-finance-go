@@ -3,13 +3,14 @@ package database
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func ConnectDB() *sql.DB {
 	var err error
-	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3306)/finance")
+	db, err := sql.Open("mysql", os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal("Error connecting to the database", err)
 	}

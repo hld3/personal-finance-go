@@ -3,16 +3,28 @@ package database
 import (
 	"database/sql"
 	"log"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal("There was an error loading .env:", err)
+	}
+}
 
 func TestAddNewUserIntegration(t *testing.T) {
 	// Open a connection to the database.
-	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		t.Fatal("Missing DB_URL env variable")
+	}
+	db, err := sql.Open("mysql", dbURL)
 	if err != nil {
 		t.Fatal("Error connecting to the database:", err)
 	}
@@ -50,6 +62,7 @@ func TestAddNewUserIntegration(t *testing.T) {
 
 func TestRetrieveUserByEmailIntegration(t *testing.T) {
 	// Open a connection to the database.
+	// TODO docker image needs to be up.
 	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
 	if err != nil {
 		t.Fatal("Error connecting to the database:", err)

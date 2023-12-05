@@ -120,8 +120,6 @@ func TestConfirmUserLogin(t *testing.T) {
 }
 
 func TestRegisterNewUser_Conversion(t *testing.T) {
-	domain.Validate = validator.New()
-
 	fromDTO := domain.UserDTOBuilder().Build()
 	toModel := convertDTOToModel(&fromDTO)
 	err := bcrypt.CompareHashAndPassword([]byte(toModel.PasswordHash), []byte(fromDTO.Password))

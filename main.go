@@ -8,9 +8,14 @@ import (
 	"github.com/hld3/personal-finance-go/controller"
 	"github.com/hld3/personal-finance-go/database"
 	"github.com/hld3/personal-finance-go/service"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Failed to load env file:", err)
+	}
 	db := database.ConnectDB()
 	defer db.Close()
 
