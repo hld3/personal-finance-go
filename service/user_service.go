@@ -37,6 +37,8 @@ func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
 }
 
 func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (string, error) {
+	// TODO need to make a new DTO with the user and the token.
+	// then return that new DTO.
 	err := userData.ValidateUserLoginDTO()
 	if err != nil {
 		return "", err
