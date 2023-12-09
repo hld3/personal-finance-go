@@ -36,30 +36,31 @@ func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
 	return nil
 }
 
-func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (string, error) {
-	// TODO need to make a new DTO with the user and the token.
-	// then return that new DTO.
+func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (*domain.UserProfileDTO, error) {
 	err := userData.ValidateUserLoginDTO()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// retrieve the user by email
 	userModel, err := us.UDBI.RetrieveUserByEmail(userData.Login.Email)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// compare password hashes. CompareHashAndPassword returns nil if they match.
 	err = bcrypt.CompareHashAndPassword([]byte(userModel.PasswordHash), []byte(userData.Login.Password))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// create JWT token.
-	token, err := utility.CreateJWTToken(userModel.UserId.String(), time.Hour) // hour for now.
+	token, err := utility.CreateJWTToken(userModel.UserId.String(), time.Hour) // TODO env variable for time?
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	// update the user profile DTO
+	userDTO := convertModelToDTO(&userModel)
+	userProfile := domain.UserProfileDTO{UserDTO: userDTO, JWTToken: token}
 	// return result
-	return token, nil
+	return &userProfile, nil // when to use a pointer or not? this time was in order to return nil for the UserProfileDTO.
 }
 
 func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
@@ -74,6 +75,18 @@ func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 		DateOfBirth:  from.DateOfBirth,
 		PasswordHash: hashedPass,
 		CreationDate: time.Now().UnixMilli(),
+	}
+}
+
+func convertModelToDTO(from *domain.UserModel) domain.UserDTO {
+	return domain.UserDTO{
+		UserId: from.UserId,
+		FirstName: from.FirstName,
+		LastName: from.LastName,
+		Email: from.Email,
+		Phone: from.Phone,
+		DateOfBirth: from.DateOfBirth,
+		CreationDate: from.CreationDate,
 	}
 }
 

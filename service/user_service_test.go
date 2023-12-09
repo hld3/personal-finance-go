@@ -8,20 +8,19 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
-	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var pw = "super_private_password"
 
-type StubDatabase struct {
-	mock.Mock
-}
+type StubDatabase struct{}
 
 func (m *StubDatabase) AddNewUser(user *domain.UserModel) error {
 	return nil
 }
 
+// This stub doesn't allow me to compare the UserProfileDTO result at the end of the tests.
+// However the test are better with a stub, primarily when it comes to validation.
 func (m *StubDatabase) RetrieveUserByEmail(email string) (domain.UserModel, error) {
 	pw := HashPassword(pw, uuid.New())
 	return domain.UserModelBuilder().WithPasswordHash(pw).Build(), nil
@@ -112,14 +111,14 @@ func TestConfirmUserLogin(t *testing.T) {
 				t.Errorf("Error did not match expected error, got %v want %v", err, test.expectedError)
 			} else if err != nil && !test.wantError {
 				t.Error("There was an unexpected error", err)
-			} else if err == nil && result == "" {
+			} else if err == nil && result.JWTToken == "" {
 				t.Error("Token expected but was missing, got", result)
 			}
 		})
 	}
 }
 
-func TestRegisterNewUser_Conversion(t *testing.T) {
+func TestConvertDTOToModel(t *testing.T) {
 	fromDTO := domain.UserDTOBuilder().Build()
 	toModel := convertDTOToModel(&fromDTO)
 	err := bcrypt.CompareHashAndPassword([]byte(toModel.PasswordHash), []byte(fromDTO.Password))
@@ -134,6 +133,21 @@ func TestRegisterNewUser_Conversion(t *testing.T) {
 		toModel.DateOfBirth != fromDTO.DateOfBirth ||
 		toModel.UserId == uuid.Nil ||
 		toModel.CreationDate == 0 {
-		t.Error("Conversion of userDTO to userModel failed")
+		t.Error("Conversion of UserDTO to UserModel failed")
+	}
+}
+
+func TestConvertModelToDTO(t *testing.T) {
+	fromModel := domain.UserModelBuilder().Build()
+	toDTO := convertModelToDTO(&fromModel)
+
+	if toDTO.UserId != fromModel.UserId ||
+		toDTO.FirstName != fromModel.FirstName ||
+		toDTO.LastName != fromModel.LastName ||
+		toDTO.Phone != fromModel.Phone ||
+		toDTO.Email != fromModel.Email ||
+		toDTO.DateOfBirth != fromModel.DateOfBirth ||
+		toDTO.CreationDate != fromModel.CreationDate {
+		t.Error("Conversion of UserModel to UserDTO failed")
 	}
 }
