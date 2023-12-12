@@ -21,8 +21,10 @@ func main() {
 
 	dbManager := database.SQLManager{DB: db} // implementation of UserDatabase interface
 	userService := service.UserService{UDBI: &dbManager} // implementation of UserServiceInterface
+	newValidator := validator.New()
 	
-	http.HandleFunc("/register", controller.RegisterNewUserControl(&userService, validator.New()))
+	http.HandleFunc("/register", controller.RegisterNewUserControl(&userService, newValidator))
+	http.HandleFunc("/login", controller.ConfirmUserLoginControl(&userService, newValidator))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

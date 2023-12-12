@@ -33,20 +33,28 @@ func (b *UserDTOStruct) WithFirstName(name string) *UserDTOStruct {
 }
 
 type UserLoginDTOStruct struct {
+	email    string
 	password string
 }
 
 func UserLoginDTOBuilder() *UserLoginDTOStruct {
 	return &UserLoginDTOStruct{
+		email:    gen.Email(),
 		password: gen.Letters(15),
 	}
 }
 
 func (b *UserLoginDTOStruct) Build() UserLoginDTO {
 	return UserLoginDTO{
-		Email:    gen.Email(),
+		Email:    b.email,
 		Password: b.password,
 	}
+}
+
+func (b *UserLoginDTOStruct) WithEmailAndPassword(email string, pw string) *UserLoginDTOStruct {
+	b.email = email
+	b.password = pw
+	return b
 }
 
 func (b *UserLoginDTOStruct) WithPassword(pw string) *UserLoginDTOStruct {

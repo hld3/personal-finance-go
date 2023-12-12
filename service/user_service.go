@@ -13,6 +13,7 @@ import (
 
 type UserServiceInterface interface {
 	RegisterNewUser(userData *domain.UserData) error
+	ConfirmUserLogin(userData *domain.UserData) (*domain.UserProfileDTO, error)
 }
 
 type UserService struct {
