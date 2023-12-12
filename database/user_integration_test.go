@@ -62,7 +62,7 @@ func TestAddNewUserIntegration(t *testing.T) {
 
 func TestRetrieveUserByEmailIntegration(t *testing.T) {
 	// Open a connection to the database.
-	// TODO docker image needs to be up.
+	// docker image needs to be up.
 	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
 	if err != nil {
 		t.Fatal("Error connecting to the database:", err)
@@ -81,6 +81,36 @@ func TestRetrieveUserByEmailIntegration(t *testing.T) {
 	}
 
 	um, err := udb.RetrieveUserByEmail(user.Email)
+	if err != nil {
+		t.Error("Error retrieving user:", err)
+	}
+
+	if um != user {
+		t.Errorf("User data does not match, got %v, want %v", um, user)
+	}
+}
+
+func TestRetrieveUserByUserIdIntegration(t *testing.T) {
+	// Open a connection to the database.
+	// docker image needs to be up.
+	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
+	if err != nil {
+		t.Fatal("Error connecting to the database:", err)
+	}
+	defer db.Close()
+	udb := SQLManager{DB: db}
+
+	// Check the DB for the user_model table.
+	checkDatabaseExistence(db)
+
+	// Save a user to find.
+	user := domain.UserModelBuilder().Build()
+	_, err = db.Exec("insert into user_model (user_id, first_name, last_name, email, phone, date_of_birth, creation_date, password_hash) values (?, ?, ?, ?, ?, ?, ?, ?)", user.UserId, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.CreationDate, user.PasswordHash)
+	if err != nil {
+		t.Error("Error saving test:", err)
+	}
+
+	um, err := udb.RetrieveUserByUserId(user.UserId)
 	if err != nil {
 		t.Error("Error retrieving user:", err)
 	}
