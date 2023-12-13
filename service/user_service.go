@@ -14,6 +14,7 @@ import (
 type UserServiceInterface interface {
 	RegisterNewUser(userData *domain.UserData) error
 	ConfirmUserLogin(userData *domain.UserData) (*domain.UserProfileDTO, error)
+	RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDTO, error)
 }
 
 type UserService struct {
@@ -62,6 +63,15 @@ func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (*domain.User
 	userProfile := domain.UserProfileDTO{UserDTO: userDTO, JWTToken: token}
 	// return result
 	return &userProfile, nil // when to use a pointer or not? this time was in order to return nil for the UserProfileDTO.
+}
+
+func (us *UserService) RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDTO, error) {
+	userModel, err := us.UDBI.RetrieveUserByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+	userDTO := convertModelToDTO(&userModel)
+	return &userDTO, nil
 }
 
 func convertDTOToModel(from *domain.UserDTO) domain.UserModel {

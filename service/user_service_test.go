@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -21,9 +20,14 @@ func (m *StubDatabase) AddNewUser(user *domain.UserModel) error {
 
 // This stub doesn't allow me to compare the UserProfileDTO result at the end of the tests.
 // However the test are better with a stub, primarily when it comes to validation.
+// The test to compare the UserProfileDTO result is in the intergration test.
 func (m *StubDatabase) RetrieveUserByEmail(email string) (domain.UserModel, error) {
 	pw := HashPassword(pw, uuid.New())
 	return domain.UserModelBuilder().WithPasswordHash(pw).Build(), nil
+}
+
+func (m *StubDatabase) RetrieveUserByUserId(userId uuid.UUID) (domain.UserModel, error) {
+	return domain.UserModelBuilder().Build(), nil
 }
 
 func TestRegisterNewUser_Validation(t *testing.T) {
@@ -107,7 +111,6 @@ func TestConfirmUserLogin(t *testing.T) {
 			result, err := userService.ConfirmUserLogin(&userData)
 
 			if test.wantError && !strings.Contains(err.Error(), test.expectedError) {
-				fmt.Println(".........THE ERROR...............:", err.Error())
 				t.Errorf("Error did not match expected error, got %v want %v", err, test.expectedError)
 			} else if err != nil && !test.wantError {
 				t.Error("There was an unexpected error", err)
@@ -117,6 +120,10 @@ func TestConfirmUserLogin(t *testing.T) {
 		})
 	}
 }
+
+// This function would only pass or fail because of what I tell it to return.
+// It doesn't seem useful as a unit test.
+// func TestRetrieveUserProfileData(t *testing.T) { }
 
 func TestConvertDTOToModel(t *testing.T) {
 	fromDTO := domain.UserDTOBuilder().Build()

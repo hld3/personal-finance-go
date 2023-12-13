@@ -66,27 +66,84 @@ func TestConfirmUserLogin_Integration(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			userData := domain.UserData{Login: &test.loginDTO, Validator: validator.New()}
-			userModel, err := saveUserToDatabase(test.loginDTO, db)
+			userModel, err := saveUserLoginToDatabase(test.loginDTO, db)
 			if err != nil {
-				t.Error("Error saving user to the database.", err)
+				t.Fatal("Error saving user to the database.", err)
 			}
 
 			result, err := userService.ConfirmUserLogin(&userData)
 			if err != nil {
-				t.Error("Error logging user in:", err)
+				t.Fatal("Error logging user in:", err)
 			}
 
 			if test.wantErr && !strings.Contains(err.Error(), test.expectedError) {
-				t.Errorf("Error did not match the expected error, got %v want %s", err, test.expectedError)
+				t.Fatalf("Error did not match the expected error, got %v want %s", err, test.expectedError)
 			} else if err != nil && !test.wantErr {
-				t.Error("There was an unexpected error:", err)
+				t.Fatal("There was an unexpected error:", err)
 			} else if err == nil && result.JWTToken == "" {
-				t.Error("Token expected but was missing.")
+				t.Fatal("Token expected but was missing.")
 			} else if !confirmUserData(userModel, result.UserDTO) {
-				t.Errorf("The user data does not match. got %v want %v", result.UserDTO, userModel)
+				t.Fatalf("The user data does not match. got %v want %v", result.UserDTO, userModel)
 			}
 		})
 	}
+}
+
+// TODO needs testing and maybe a test that fails to retrieve the data.
+func TestRetrieveUserProfileData_Integration(t *testing.T) {
+	db := setUpDatabase()
+	defer db.Close()
+	udb := database.SQLManager{DB: db}
+	userService := UserService{UDBI: &udb}
+
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "User found",
+			wantErr: false,
+		},
+		{
+			name:    "User not found",
+			wantErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// save the user
+			userModel := domain.UserModelBuilder().Build()
+			err := saveUserModelToDatabase(userModel, db)
+			if err != nil {
+				t.Fatal("Error saving user model to the database:", err)
+			}
+
+			if !test.wantErr {
+				// pass the user id
+				profileData, err := userService.RetrieveUserProfileData(userModel.UserId)
+				if err != nil {
+					t.Fatal("Error retrieving profile data:", err)
+				}
+
+				// confirm the correct user
+				if profileData.FirstName != userModel.FirstName ||
+					profileData.LastName != userModel.LastName ||
+					profileData.Email != userModel.Email ||
+					profileData.Phone != userModel.Phone ||
+					profileData.DateOfBirth != userModel.DateOfBirth ||
+					profileData.CreationDate != userModel.CreationDate {
+					t.Fatalf("The profile data does not match the expected data, got %v, want %v", profileData, userModel)
+				}
+			} else {
+				_, err := userService.RetrieveUserProfileData(uuid.New())
+				if err == nil {
+					t.Fatal("Expected error when no user profile data is found.")
+				}
+			}
+		})
+	}
+
 }
 
 func confirmUserData(fromUser domain.UserModel, toUser domain.UserDTO) bool {
@@ -99,7 +156,7 @@ func confirmUserData(fromUser domain.UserModel, toUser domain.UserDTO) bool {
 		fromUser.CreationDate == toUser.CreationDate
 }
 
-func saveUserToDatabase(loginDTO domain.UserLoginDTO, db *sql.DB) (domain.UserModel, error) {
+func saveUserLoginToDatabase(loginDTO domain.UserLoginDTO, db *sql.DB) (domain.UserModel, error) {
 	hashPW := HashPassword(loginDTO.Password, uuid.New())
 	um := domain.UserModelBuilder().WithPasswordHash(hashPW).Build()
 	um.Email = loginDTO.Email //TODO do I want to create a builder function?
@@ -110,6 +167,15 @@ func saveUserToDatabase(loginDTO domain.UserLoginDTO, db *sql.DB) (domain.UserMo
 		return um, err
 	}
 	return um, nil
+}
+
+func saveUserModelToDatabase(um domain.UserModel, db *sql.DB) error {
+	stmt := `insert into user_model (user_id, first_name, last_name, email, phone, date_of_birth, password_hash, creation_date) values (?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err := db.Exec(stmt, um.UserId, um.FirstName, um.LastName, um.Email, um.Phone, um.DateOfBirth, um.PasswordHash, um.CreationDate)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setUpDatabase() *sql.DB {
