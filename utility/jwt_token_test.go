@@ -1,12 +1,20 @@
 package utility
 
 import (
+	"log"
 	"testing"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal("There was an error loading .env:", err)
+	}
+}
 
 func TestCreateJWTToken(t *testing.T) {
 	userId := uuid.NewString()
