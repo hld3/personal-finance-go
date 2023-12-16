@@ -148,8 +148,6 @@ func TestConfirmUserLoginControl_Integration(t *testing.T) {
 				t.Errorf("Wrong status code returned, got %v, want %v", status, test.expectedCode)
 			}
 			if !test.hasError {
-				// TODO compare user profile data to user model data
-				// confirm JWT token exists
 				resBody, err := io.ReadAll(rr.Body)
 				if err != nil {
 					t.Fatal("Error reading response body:", err)
@@ -172,6 +170,84 @@ func TestConfirmUserLoginControl_Integration(t *testing.T) {
 					resDTO.Phone != expectedUserModel.Phone ||
 					resDTO.CreationDate != expectedUserModel.CreationDate ||
 					resDTO.DateOfBirth != expectedUserModel.DateOfBirth {
+					t.Fatal("The response UserDTO does not match the expected data.")
+				}
+			}
+		})
+	}
+}
+
+// TODO update for the specific tests.
+func TestRetrieveUserProfileDataControl_Integration(t *testing.T) {
+	// Setup SQLite database.
+	db := setUpDatabase()
+	defer db.Close()
+
+	// Create the service tested.
+	udb := database.SQLManager{DB: db}
+	userService := service.UserService{UDBI: &udb}
+	handler := RetrieveUserProfileDataControl(&userService)
+
+	tests := []struct {
+		name         string
+		wantErr      bool
+		expectedCode int
+	}{
+		{
+			name:         "User found",
+			wantErr:      false,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "User not found",
+			wantErr:      true,
+			expectedCode: http.StatusNotFound,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Create the user.
+			userIdString := uuid.NewString()
+			userId, err := uuid.Parse(userIdString)
+			if err != nil {
+				t.Errorf("Error parsing the userId: %s", userIdString)
+			}
+
+			var userModel domain.UserModel
+			if test.wantErr {
+				userModel = domain.UserModelBuilder().Build()
+			} else {
+				userModel = domain.UserModelBuilder().WithUserId(userId).Build()
+			}
+			saveUserModel(db, userModel)
+
+			req, _ := http.NewRequest("GET", "/profile/?user-id="+userIdString, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.expectedCode {
+				t.Errorf("Wrong status code returned, got %v, want %v", status, test.expectedCode)
+			}
+			if !test.wantErr {
+				resBody, err := io.ReadAll(rr.Body)
+				if err != nil {
+					t.Fatal("Error reading response body:", err)
+				}
+
+				var resDTO domain.UserDTO
+				if err := json.Unmarshal(resBody, &resDTO); err != nil {
+					t.Fatal("Error converting response json to a user DTO:", err)
+				}
+
+				// confirm the response UserDTO to the UserModel saved to the database.
+				if resDTO.UserId != userModel.UserId ||
+					resDTO.FirstName != userModel.FirstName ||
+					resDTO.LastName != userModel.LastName ||
+					resDTO.Email != userModel.Email ||
+					resDTO.Phone != userModel.Phone ||
+					resDTO.CreationDate != userModel.CreationDate ||
+					resDTO.DateOfBirth != userModel.DateOfBirth {
 					t.Fatal("The response UserDTO does not match the expected data.")
 				}
 			}

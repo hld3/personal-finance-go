@@ -2,11 +2,13 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
 	"github.com/hld3/personal-finance-go/service"
 )
@@ -60,15 +62,51 @@ func ConfirmUserLoginControl(us service.UserServiceInterface, validator *validat
 		if err != nil {
 			log.Println("Error logging in:", err)
 			http.Error(w, "Error loggin in:", http.StatusUnauthorized)
+			return
 		}
 
 		userDataJson, err := json.Marshal(userProfile)
 		if err != nil {
 			log.Println("Error converting profile data to json:", err)
 			http.Error(w, "Error converting profile data to json:", http.StatusInternalServerError)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(userDataJson)
+	}
+}
+
+func RetrieveUserProfileDataControl(us service.UserServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO add this to the other controllers
+		if r.Method != http.MethodGet {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		}
+
+		userIdStr := r.URL.Query().Get("user-id")
+		userId, err := uuid.Parse(userIdStr)
+		if err != nil {
+			log.Println("Error converting the given userId:", err)
+			http.Error(w, fmt.Sprintf("Error converting the given userId: %s", userIdStr), http.StatusBadRequest) 
+			return
+		}
+
+		profileData, err := us.RetrieveUserProfileData(userId)
+		if err != nil {
+			log.Println("Error retrieving profile data:", err)
+			http.Error(w, "Error retrieving profile data.", http.StatusNotFound)
+			return
+		}
+
+		profileDataJSON, err := json.Marshal(profileData)
+		if err != nil {
+			log.Println("Error marshaling profile data:", err)
+			http.Error(w, "Error marshaling profile data.", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(profileDataJSON)
 	}
 }

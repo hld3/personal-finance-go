@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/hld3/personal-finance-go/domain"
 	"github.com/stretchr/testify/mock"
 )
@@ -25,6 +26,11 @@ func (m *MockUserService) RegisterNewUser(userData *domain.UserData) error {
 func (m *MockUserService) ConfirmUserLogin(userData *domain.UserData) (*domain.UserProfileDTO, error) {
 	args := m.Called(userData)
 	return args.Get(0).(*domain.UserProfileDTO), args.Error(1)
+}
+
+func (m *MockUserService) RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDTO, error) {
+	args := m.Called(userId)
+	return args.Get(0).(*domain.UserDTO), args.Error(1)
 }
 
 func TestRegisterNewUserControl(t *testing.T) {
@@ -97,6 +103,34 @@ func TestConfirmUserLoginControl(t *testing.T) {
 	mockService.On("ConfirmUserLogin", mock.AnythingOfType("*domain.UserData")).Return(&validUserProfileDTO, nil)
 
 	handler := http.HandlerFunc(ConfirmUserLoginControl(mockService, validator.New()))
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Wrong status code: got %v, want %v", status, http.StatusOK)
+	}
+}
+
+func TestRetrieveUserProfileDataControl(t *testing.T) {
+	userIdString := uuid.NewString()
+	validUserDTO := domain.UserDTOBuilder().Build()
+
+	// Do I need the same UUID? Checked and the answer is yes.
+	userId, err := uuid.Parse(userIdString)
+	if err != nil {
+		t.Fatalf("Error parsing userId: %v, err: %v", userIdString, err)
+	}
+	validUserDTO.UserId = userId
+
+	mockService := new(MockUserService)
+	req, err := http.NewRequest("GET", "/profile/?user-id="+userIdString, nil)
+	if err != nil {
+		t.Fatal("Error building request:", err)
+	}
+
+	rr := httptest.NewRecorder()
+	mockService.On("RetrieveUserProfileData", userId).Return(&validUserDTO, nil)
+
+	handler := http.HandlerFunc(RetrieveUserProfileDataControl(mockService))
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
