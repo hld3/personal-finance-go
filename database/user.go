@@ -47,3 +47,12 @@ func (db *SQLManager) RetrieveUserByUserId(userId uuid.UUID) (domain.UserModel, 
 	}
 	return user, nil
 }
+
+func (db *SQLManager) UpdateUserByUserId(user *domain.UserDTO) error {
+	stmt := `update user_model set first_name = ?, last_name = ?, email = ?, phone = ?, date_of_birth = ? where user_id = ?`
+	_, err := db.DB.Exec(stmt, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.UserId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

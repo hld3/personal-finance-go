@@ -3,21 +3,25 @@ package domain
 import (
 	"time"
 
+	"github.com/google/uuid"
 	gen "github.com/pallinder/go-randomdata"
 )
 
 type UserDTOStruct struct {
+	userId    uuid.UUID
 	firstName string
 }
 
 func UserDTOBuilder() *UserDTOStruct {
 	return &UserDTOStruct{
+		userId:    uuid.New(),
 		firstName: gen.FirstName(1),
 	}
 }
 
 func (b *UserDTOStruct) Build() UserDTO {
 	return UserDTO{
+		UserId:      b.userId,
 		FirstName:   b.firstName,
 		LastName:    gen.LastName(),
 		Email:       gen.Email(),
@@ -29,6 +33,11 @@ func (b *UserDTOStruct) Build() UserDTO {
 
 func (b *UserDTOStruct) WithFirstName(name string) *UserDTOStruct {
 	b.firstName = name
+	return b
+}
+
+func (b *UserDTOStruct) WithUserId(userId uuid.UUID) *UserDTOStruct {
+	b.userId = userId
 	return b
 }
 

@@ -120,6 +120,52 @@ func TestRetrieveUserByUserIdIntegration(t *testing.T) {
 	}
 }
 
+func TestUpdateUserByUserIdIntegration(t *testing.T) {
+	// Open a connection to the database.
+	// docker image needs to be up.
+	db, err := sql.Open("mysql", "finance:finance@tcp(127.0.0.1:3307)/finance")
+	if err != nil {
+		t.Fatal("Error connecting to the database:", err)
+	}
+	defer db.Close()
+	udb := SQLManager{DB: db}
+
+	// Check the DB for the user_model table.
+	checkDatabaseExistence(db)
+
+	// Save the user to update
+	userModel := domain.UserModelBuilder().Build()
+	saveUserToDatabase(db, &userModel)
+
+	// The data to update the user with
+	userDTO := domain.UserDTOBuilder().WithUserId(userModel.UserId).Build()
+
+	// Call the exercised function
+	err = udb.UpdateUserByUserId(&userDTO)
+	if err != nil {
+		t.Error("Error with exercised function:", err)
+	}
+
+	// Confirm the update
+	updatedModel, err := udb.RetrieveUserByUserId(userModel.UserId)
+	if err != nil {
+		t.Error("Error with RetrieveUserByUserId, needs fixing:", err)
+	}
+
+	if updatedModel.FirstName != userDTO.FirstName ||
+	updatedModel.LastName != userDTO.LastName ||
+	updatedModel.Email != userDTO.Email ||
+	updatedModel.Phone != userDTO.Phone ||
+	updatedModel.DateOfBirth != userDTO.DateOfBirth {
+		t.Errorf("Error updating user data, got %v, want %v", updatedModel, userDTO)
+	}
+}
+
+func saveUserToDatabase(db *sql.DB, user *domain.UserModel) error {
+	_, err := db.Exec("insert into user_model (user_id, first_name, last_name, email, phone, date_of_birth, creation_date, password_hash) values (?, ?, ?, ?, ?, ?, ?, ?)", user.UserId, user.FirstName, user.LastName, user.Email, user.Phone, user.DateOfBirth, user.CreationDate, user.PasswordHash)
+	return err
+}
+
 func compareUserData(a, b domain.UserModel, dob, createStart, createEnd int64) bool {
 	return a.FirstName == b.FirstName &&
 		a.LastName == b.LastName &&
