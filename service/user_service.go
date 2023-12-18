@@ -15,6 +15,7 @@ type UserServiceInterface interface {
 	RegisterNewUser(userData *domain.UserData) error
 	ConfirmUserLogin(userData *domain.UserData) (*domain.UserProfileDTO, error)
 	RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDTO, error)
+	UpdateUserProfileData(user *domain.UserDTO) error
 }
 
 type UserService struct {
@@ -74,6 +75,14 @@ func (us *UserService) RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDT
 	return &userDTO, nil
 }
 
+func (us *UserService) UpdateUserProfileData(user *domain.UserDTO) error {
+	err := us.UDBI.UpdateUserByUserId(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 	userId := uuid.New()
 	hashedPass := HashPassword(from.Password, userId)
@@ -91,12 +100,12 @@ func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 
 func convertModelToDTO(from *domain.UserModel) domain.UserDTO {
 	return domain.UserDTO{
-		UserId: from.UserId,
-		FirstName: from.FirstName,
-		LastName: from.LastName,
-		Email: from.Email,
-		Phone: from.Phone,
-		DateOfBirth: from.DateOfBirth,
+		UserId:       from.UserId,
+		FirstName:    from.FirstName,
+		LastName:     from.LastName,
+		Email:        from.Email,
+		Phone:        from.Phone,
+		DateOfBirth:  from.DateOfBirth,
 		CreationDate: from.CreationDate,
 	}
 }

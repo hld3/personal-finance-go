@@ -30,6 +30,10 @@ func (m *StubDatabase) RetrieveUserByUserId(userId uuid.UUID) (domain.UserModel,
 	return domain.UserModelBuilder().Build(), nil
 }
 
+func (m *StubDatabase) UpdateUserByUserId(user *domain.UserDTO) error {
+	return nil
+}
+
 func TestRegisterNewUser_Validation(t *testing.T) {
 	stubDB := new(StubDatabase)
 	userService := UserService{UDBI: stubDB}
@@ -124,6 +128,9 @@ func TestConfirmUserLogin(t *testing.T) {
 // This function would only pass or fail because of what I tell it to return.
 // It doesn't seem useful as a unit test.
 // func TestRetrieveUserProfileData(t *testing.T) { }
+
+// This test would be useless with a stub as the result is dependant on the returned error.
+// func TestUpdateUserProfileData(t *testing.T) { }
 
 func TestConvertDTOToModel(t *testing.T) {
 	fromDTO := domain.UserDTOBuilder().Build()

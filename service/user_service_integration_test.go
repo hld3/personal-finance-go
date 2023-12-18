@@ -146,6 +146,42 @@ func TestRetrieveUserProfileData_Integration(t *testing.T) {
 
 }
 
+func TestUpdateUserProfileData_Integration(t *testing.T) {
+	db := setUpDatabase()
+	defer db.Close()
+	udb := database.SQLManager{DB: db}
+	userService := UserService{UDBI: &udb}
+
+	// User is saved to the database
+	savedUser := domain.UserModelBuilder().Build()
+	err := saveUserModelToDatabase(savedUser, db)
+	if err != nil {
+		t.Error("Error saving user model to the database:", err)
+	}
+
+	// The data to update the user is sent
+	expected := domain.UserDTOBuilder().WithUserId(savedUser.UserId).Build()
+	err = userService.UpdateUserProfileData(&expected)
+	if err != nil {
+		t.Error("Error updating user data:", err)
+	}
+
+	// Get the updated user.
+	updatedUser, err := udb.RetrieveUserByUserId(savedUser.UserId)
+	if err != nil {
+		t.Error("Error retrieving user by userId:", err)
+	}
+
+	// Check the user for the updated data.
+	if updatedUser.FirstName != expected.FirstName ||
+		updatedUser.LastName != expected.LastName ||
+		updatedUser.Email != expected.Email ||
+		updatedUser.Phone != expected.Phone ||
+		updatedUser.DateOfBirth != expected.DateOfBirth {
+		t.Errorf("The user was not updated as expected, want %v, got %v.", expected, updatedUser)
+	}
+}
+
 func confirmUserData(fromUser domain.UserModel, toUser domain.UserDTO) bool {
 	return fromUser.UserId == toUser.UserId &&
 		fromUser.FirstName == toUser.FirstName &&

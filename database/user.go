@@ -12,6 +12,7 @@ type UserDatabaseInterface interface {
 	AddNewUser(user *domain.UserModel) error
 	RetrieveUserByEmail(email string) (domain.UserModel, error)
 	RetrieveUserByUserId(userId uuid.UUID) (domain.UserModel, error)
+	UpdateUserByUserId(user *domain.UserDTO) error
 }
 
 type SQLManager struct {
