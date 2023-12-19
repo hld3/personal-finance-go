@@ -177,7 +177,6 @@ func TestConfirmUserLoginControl_Integration(t *testing.T) {
 	}
 }
 
-// TODO update for the specific tests.
 func TestRetrieveUserProfileDataControl_Integration(t *testing.T) {
 	// Setup SQLite database.
 	db := setUpDatabase()
@@ -252,6 +251,52 @@ func TestRetrieveUserProfileDataControl_Integration(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestUpdateUserProfileDataControl_Integration(t *testing.T) {
+	// Setup SQLite database.
+	db := setUpDatabase()
+	defer db.Close()
+
+	// Create the service tested.
+	udb := database.SQLManager{DB: db}
+	userService := service.UserService{UDBI: &udb}
+	handler := UpdateUserProfileDataControl(&userService)
+
+	// User to udpate
+	userModel := domain.UserModelBuilder().Build()
+	saveUserModel(db, userModel)
+
+	// User update data
+	userDTO := domain.UserDTOBuilder().WithUserId(userModel.UserId).Build()
+
+	// Build the request
+	userDTOBytes, err := json.Marshal(userDTO)
+	if err != nil {
+		t.Fatal("Error marshaling the user DTO:", err)
+	}
+	req, err := http.NewRequest("GET", "/update", bytes.NewBufferString(string(userDTOBytes)))
+	if err != nil {
+		t.Fatal("Error building the request:", err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	updatedModel, err := userService.RetrieveUserProfileData(userModel.UserId)
+	if err != nil {
+		t.Fatal("Error retrieving updated profile data:", err)
+	}
+
+	if status := rr.Code; status == http.StatusOK {
+		t.Fatalf("Wrong status code returned, got %d, want %d", status, http.StatusOK)
+	}
+	if updatedModel.FirstName != userDTO.FirstName ||
+		updatedModel.LastName != userDTO.LastName ||
+		updatedModel.Email != userDTO.Email ||
+		updatedModel.Phone != userDTO.Phone ||
+		updatedModel.DateOfBirth != userDTO.DateOfBirth {
+		t.Fatalf("User profile data was not saved correctly. got %v, want %v", updatedModel, userDTO)
 	}
 }
 

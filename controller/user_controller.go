@@ -110,3 +110,33 @@ func RetrieveUserProfileDataControl(us service.UserServiceInterface) http.Handle
 		w.Write(profileDataJSON)
 	}
 }
+
+func UpdateUserProfileDataControl(us service.UserServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		}
+
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Println("Error reading request body:", err)
+			http.Error(w, "Error reading request body.", http.StatusBadRequest)
+			return
+		}
+
+		var userDTO domain.UserDTO
+		err = json.Unmarshal(bodyBytes, &userDTO)
+		if err != nil {
+			log.Println("Error converting to user DTO:", err)
+			http.Error(w, "Error converting to user DTO.", http.StatusBadRequest)
+			return
+		}
+
+		err = us.UpdateUserProfileData(&userDTO)
+		if err != nil {
+			log.Println("Error updating user profile data:", err)
+			http.Error(w, "Error updating user profile data.", http.StatusInternalServerError)
+			return
+		}
+	}
+}

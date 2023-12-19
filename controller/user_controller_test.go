@@ -33,6 +33,11 @@ func (m *MockUserService) RetrieveUserProfileData(userId uuid.UUID) (*domain.Use
 	return args.Get(0).(*domain.UserDTO), args.Error(1)
 }
 
+func (m *MockUserService) UpdateUserProfileData(user *domain.UserDTO) error {
+	args := m.Called(user)
+	return args.Error(0)
+}
+
 func TestRegisterNewUserControl(t *testing.T) {
 	validDTOJson, err := json.Marshal(domain.UserDTOBuilder().Build())
 	if err != nil {
@@ -131,6 +136,30 @@ func TestRetrieveUserProfileDataControl(t *testing.T) {
 	mockService.On("RetrieveUserProfileData", userId).Return(&validUserDTO, nil)
 
 	handler := http.HandlerFunc(RetrieveUserProfileDataControl(mockService))
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Wrong status code: got %v, want %v", status, http.StatusOK)
+	}
+}
+
+func TestUpdateUserProfileDataControl(t *testing.T) {
+	userDTO := domain.UserDTOBuilder().Build()
+	userDTOByte, err := json.Marshal(userDTO)
+	if err != nil {
+		t.Fatal("Error marshaling the user DTO:", err)
+	}
+
+	mockService := new(MockUserService)
+	req, err := http.NewRequest("PUT", "/update", bytes.NewBufferString(string(userDTOByte)))
+	if err != nil {
+		t.Fatal("Error creating the request:", err)
+	}
+
+	rr := httptest.NewRecorder()
+	mockService.On("UpdateUserProfileData", &userDTO).Return(nil)
+
+	handler := http.HandlerFunc(UpdateUserProfileDataControl(mockService))
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

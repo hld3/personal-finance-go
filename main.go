@@ -26,6 +26,7 @@ func main() {
 	http.HandleFunc("/register", controller.RegisterNewUserControl(&userService, newValidator))
 	http.HandleFunc("/login", controller.ConfirmUserLoginControl(&userService, newValidator))
 	http.HandleFunc("/profile", controller.RetrieveUserProfileDataControl(&userService))
+	http.HandleFunc("/update", controller.UpdateUserProfileDataControl(&userService))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
