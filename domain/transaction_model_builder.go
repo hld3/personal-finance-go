@@ -20,6 +20,7 @@ func TransactionModelBuilder() *TransactionModelBuild {
 func (b *TransactionModelBuild) Build() TransactionModel {
 	return TransactionModel{
 		UserId:        uuid.New(),
+		TransactionId: uuid.New(),
 		CategoryId:    int64(gen.Number(15)),
 		Amount:        float64(gen.Number(3)),
 		Date:          int64(gen.Number(13)),
@@ -40,8 +41,8 @@ func CategoryModelBuilder() *CategoryModelBuild {
 
 func (b *CategoryModelBuild) Build() CategoryModel {
 	return CategoryModel{
-		UserId: uuid.New(),
-		Name: gen.Letters(10),
+		UserId:      uuid.New(),
+		Name:        gen.Letters(10),
 		Description: strings.Split(gen.Paragraph(), ".")[0],
 	}
 }

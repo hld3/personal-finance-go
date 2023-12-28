@@ -27,6 +27,7 @@ const (
 
 type TransactionModel struct {
 	UserId        uuid.UUID
+	TransactionId uuid.UUID
 	CategoryId    int64
 	Amount        float64
 	Date          int64

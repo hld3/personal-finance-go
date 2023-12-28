@@ -23,10 +23,10 @@ func main() {
 	userService := service.UserService{UDBI: &dbManager} // implementation of UserServiceInterface
 	newValidator := validator.New()
 	
-	http.HandleFunc("/register", controller.RegisterNewUserControl(&userService, newValidator))
-	http.HandleFunc("/login", controller.ConfirmUserLoginControl(&userService, newValidator))
-	http.HandleFunc("/profile", controller.RetrieveUserProfileDataControl(&userService))
-	http.HandleFunc("/update", controller.UpdateUserProfileDataControl(&userService))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/user/register", controller.RegisterNewUserControl(&userService, newValidator))
+	http.HandleFunc("/user/login", controller.ConfirmUserLoginControl(&userService, newValidator))
+	http.HandleFunc("/user/profile", controller.RetrieveUserProfileDataControl(&userService))
+	http.HandleFunc("/user/update", controller.UpdateUserProfileDataControl(&userService))
+	log.Fatal(http.ListenAndServe(":8083", nil))
 }
 
