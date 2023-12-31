@@ -16,9 +16,7 @@ func init() {
 	}
 }
 
-func TestAddTransactionIntegration(t *testing.T) {
-}
-
+// This also essentially tests AddTransaction.
 func TestGetTransactionIntegration(t *testing.T) {
 	// Open a connection to the database.
 	dbURL := os.Getenv("DB_URL")

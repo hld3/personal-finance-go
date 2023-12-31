@@ -15,7 +15,7 @@ import (
 
 // Test setup using SQLite.
 func TestRegisterNewUser_Integration(t *testing.T) {
-	db := setUpDatabase()
+	db := setUpUserModel()
 	defer db.Close()
 	udb := database.SQLManager{DB: db}
 	userService := UserService{UDBI: &udb}
@@ -44,7 +44,7 @@ func TestRegisterNewUser_Integration(t *testing.T) {
 }
 
 func TestConfirmUserLogin_Integration(t *testing.T) {
-	db := setUpDatabase()
+	db := setUpUserModel()
 	defer db.Close()
 	udb := database.SQLManager{DB: db}
 	userService := UserService{UDBI: &udb}
@@ -91,7 +91,7 @@ func TestConfirmUserLogin_Integration(t *testing.T) {
 
 // TODO needs testing and maybe a test that fails to retrieve the data.
 func TestRetrieveUserProfileData_Integration(t *testing.T) {
-	db := setUpDatabase()
+	db := setUpUserModel()
 	defer db.Close()
 	udb := database.SQLManager{DB: db}
 	userService := UserService{UDBI: &udb}
@@ -147,7 +147,7 @@ func TestRetrieveUserProfileData_Integration(t *testing.T) {
 }
 
 func TestUpdateUserProfileData_Integration(t *testing.T) {
-	db := setUpDatabase()
+	db := setUpUserModel()
 	defer db.Close()
 	udb := database.SQLManager{DB: db}
 	userService := UserService{UDBI: &udb}
@@ -214,7 +214,7 @@ func saveUserModelToDatabase(um domain.UserModel, db *sql.DB) error {
 	return nil
 }
 
-func setUpDatabase() *sql.DB {
+func setUpUserModel() *sql.DB {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		log.Fatal("Error connecting to the database:", err)

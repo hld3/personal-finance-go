@@ -29,7 +29,7 @@ func (us *UserService) RegisterNewUser(userData *domain.UserData) error {
 		return err // ValidateUser will log the error
 	}
 
-	userModel := convertDTOToModel(userData.User)
+	userModel := convertUserDTOToModel(userData.User)
 
 	// save the user to the database
 	err = us.UDBI.AddNewUser(&userModel)
@@ -60,7 +60,7 @@ func (us *UserService) ConfirmUserLogin(userData *domain.UserData) (*domain.User
 		return nil, err
 	}
 	// update the user profile DTO
-	userDTO := convertModelToDTO(&userModel)
+	userDTO := convertUserModelToDTO(&userModel)
 	userProfile := domain.UserProfileDTO{UserDTO: userDTO, JWTToken: token}
 	// return result
 	return &userProfile, nil // when to use a pointer or not? this time was in order to return nil for the UserProfileDTO.
@@ -71,7 +71,7 @@ func (us *UserService) RetrieveUserProfileData(userId uuid.UUID) (*domain.UserDT
 	if err != nil {
 		return nil, err
 	}
-	userDTO := convertModelToDTO(&userModel)
+	userDTO := convertUserModelToDTO(&userModel)
 	return &userDTO, nil
 }
 
@@ -83,7 +83,7 @@ func (us *UserService) UpdateUserProfileData(user *domain.UserDTO) error {
 	return nil
 }
 
-func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
+func convertUserDTOToModel(from *domain.UserDTO) domain.UserModel {
 	userId := uuid.New()
 	hashedPass := HashPassword(from.Password, userId)
 	return domain.UserModel{
@@ -98,7 +98,7 @@ func convertDTOToModel(from *domain.UserDTO) domain.UserModel {
 	}
 }
 
-func convertModelToDTO(from *domain.UserModel) domain.UserDTO {
+func convertUserModelToDTO(from *domain.UserModel) domain.UserDTO {
 	return domain.UserDTO{
 		UserId:       from.UserId,
 		FirstName:    from.FirstName,

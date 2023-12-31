@@ -134,7 +134,7 @@ func TestConfirmUserLogin(t *testing.T) {
 
 func TestConvertDTOToModel(t *testing.T) {
 	fromDTO := domain.UserDTOBuilder().Build()
-	toModel := convertDTOToModel(&fromDTO)
+	toModel := convertUserDTOToModel(&fromDTO)
 	err := bcrypt.CompareHashAndPassword([]byte(toModel.PasswordHash), []byte(fromDTO.Password))
 	if err != nil {
 		t.Error("Password hash does not match")
@@ -153,7 +153,7 @@ func TestConvertDTOToModel(t *testing.T) {
 
 func TestConvertModelToDTO(t *testing.T) {
 	fromModel := domain.UserModelBuilder().Build()
-	toDTO := convertModelToDTO(&fromModel)
+	toDTO := convertUserModelToDTO(&fromModel)
 
 	if toDTO.UserId != fromModel.UserId ||
 		toDTO.FirstName != fromModel.FirstName ||

@@ -7,7 +7,10 @@ import (
 	"github.com/hld3/personal-finance-go/domain"
 )
 
-type TransactionDatabaseInterface interface{}
+type TransactionDatabaseInterface interface{
+	AddTransaction(tm *domain.TransactionModel) error
+	GetTransaction(transactionId uuid.UUID) (domain.TransactionModel, error)
+}
 
 func (db *SQLManager) AddTransaction(tm *domain.TransactionModel) error {
 	stmt := `insert into transaction_model (user_id, transaction_id, category_id, amount, date, description, created_at, updated_at, type, payment_method, status) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
